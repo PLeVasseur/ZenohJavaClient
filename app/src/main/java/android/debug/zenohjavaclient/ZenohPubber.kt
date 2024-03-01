@@ -2,6 +2,7 @@ package android.debug.zenohjavaclient
 
 import android.util.Log
 import com.google.protobuf.Empty
+import io.zenoh.Config
 import io.zenoh.Session
 import io.zenoh.keyexpr.KeyExpr
 import io.zenoh.prelude.Encoding
@@ -64,7 +65,15 @@ class ZenohPubber {
                 .build()
 
             try {
-                Session.open().use { session ->
+                val jsonConfig = """
+                                 {
+                                   "mode": "peer",
+                                   "connect": { "endpoints": ["unixsock-stream//tmp/zenoh_java_socket"] }
+                                 }
+                                 """.trimIndent()
+                val config: Config = Config.from(jsonConfig)
+                Session.open(config).use { session ->
+                // Session.open().use { session ->
                     KeyExpr.tryFrom("demo/example/zenoh-java-pub").use { keyExpr ->
                         Log.d("ZenohDemo", "Declaring publisher on '$keyExpr'...")
                         session.declarePublisher(keyExpr).res().use { publisher ->
